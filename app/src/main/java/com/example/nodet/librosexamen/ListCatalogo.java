@@ -1,5 +1,6 @@
 package com.example.nodet.librosexamen;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -7,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -25,6 +27,7 @@ public class ListCatalogo extends AppCompatActivity {
 
     ListView listView;
     APIRest apiRest;
+    ProgressDialog mProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +48,10 @@ public class ListCatalogo extends AppCompatActivity {
 
         Call<List<LibroCat>> getCat = apiRest.getCatalogo();
 
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setIndeterminate(true);
+        mProgressDialog.setMessage("Loading...");
+        mProgressDialog.show();
         getCat.enqueue(new Callback<List<LibroCat>>() {
             @Override
             public void onResponse(Call<List<LibroCat>> call, Response<List<LibroCat>> response) {
@@ -74,12 +81,16 @@ public class ListCatalogo extends AppCompatActivity {
                     CustomListAdapter adapter = new CustomListAdapter(ListCatalogo.this, arrayTitulos, arrayAutores, arrayURLs, arrayIds);
                     listView.setAdapter(adapter);
 
+
+                    mProgressDialog.hide();
+
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
 
                             Call<LibroDet> getCat = apiRest.getLibro(arrayIds.get(position));
+                            mProgressDialog.show();
                             getCat.enqueue(new Callback<LibroDet>() {
                                 @Override
                                 public void onResponse(Call<LibroDet> call, Response<LibroDet> response) {
@@ -95,6 +106,7 @@ public class ListCatalogo extends AppCompatActivity {
                                         Type type = new TypeToken<LibroDet>() {}.getType();
                                         String json = gson.toJson(libroDet, type);
                                         intent.putExtra("datos", json);
+                                        mProgressDialog.hide();
                                         startActivity(intent);
 
                                     }
